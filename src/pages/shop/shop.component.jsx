@@ -18,15 +18,29 @@ const CollectionsOverviewWithSpinner = WithSpinner(CollectionOverview);
 const CollectionPageWithSpinner = WithSpinner(CollectionPage);
 
 class ShopPage extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            loading: true
+        }
+    }
+
   usubscribeFromSnapshot = null;
 
   componentDidMount() {
     const { updateCollections } = this.props;
-    const CollectionRef = firestore.collection('collections');
-    CollectionRef.onSnapshot(async snapshot => {
+    const collectionRef = firestore.collection('collections');
+
+    // fetch('https://firestore.googleapis.com/v1/projects/react-shoper/databases/(default)/documents/collections')
+    // .then(response => response.json())
+    // .then(collections => console.log(collections));
+
+    collectionRef.get().then(snapshot => {
         const collectionsMap = convertCollectionSnapshotToMap(snapshot);
         updateCollections(collectionsMap);
-    })
+        this.setState({loading: false})
+    });
+
   }
 
   render() {
@@ -37,13 +51,13 @@ class ShopPage extends React.Component {
           exact
           path={`${match.path}`}
           render={props => (
-            <CollectionsOverviewWithSpinner isLoading={false} {...props} />
+            <CollectionsOverviewWithSpinner isLoading={this.state.loading} {...props} />
           )}
         />
         <Route
           path={`${match.path}/:collectionId`}
           render={props => (
-            <CollectionPageWithSpinner isLoading={false} {...props} />
+            <CollectionPageWithSpinner isLoading={this.state.loading} {...props} />
           )}
         />
       </div>
